@@ -12,20 +12,33 @@ export function PostForm(){
   })
   const [createPost, { error }] = useMutation(CREATE_POST, {
     variables: values,
-    update(proxy,result){
+    update(proxy, result) {
       const data = proxy.readQuery({
-        query: FETCH_POSTS_QUERY
-      })
-      data.getPosts = [result.data.createPost, ...data.getPosts]
-      proxy.writeQuery({query: FETCH_POSTS_QUERY, data})
+        query: FETCH_POSTS_QUERY,
+      });
+      // necesitamos ahcer una copia mutable de getpOST ANTES DE PASARLO
+      let newData = [...data.getPosts];
+      newData = [result.data.createPost, ...newData];
+      proxy.writeQuery({
+        query: FETCH_POSTS_QUERY,
+        data: {
+          ...data,
+          getPosts: {
+            newData,
+          },
+        },
+      });
       values.body = ''
     }
+
+    
   })
 
   function createPostCallback(params) {
     createPost()
   }
   return (
+    <>
     <Form onSubmit={onSubmit}>
       <h2>Create a post</h2>
       <Form.Field>
@@ -34,11 +47,20 @@ export function PostForm(){
           name = 'body'
           onChange = {onChange}
           value = {values.body}
+          error={error ? true : false}
         />
         <Button type="submit" color="teal">
           Submit
         </Button>
       </Form.Field>
     </Form>
+    {error && (
+      <div className="ui error message" style={{ marginBottom: 20 }}>
+        <ul className="list">
+          <li>{error.graphQLErrors[0].message}</li>
+        </ul>
+      </div>
+    )}
+    </>
   )
 }
