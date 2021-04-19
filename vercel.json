@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "name": "petgram-server",
-  "alias": ["petgram-api"],
-  "builds": [{ "src": "index.js", "use": "@now/node" }],
+  "name": "social-graphql",
+  "alias": ["social-graphql"],
+  "builds": [{ "src": "index.js", "use": "@vercel/node" }],
   "routes": [{
     "headers": {
         "Access-Control-Allow-Origin": "*",
@@ -10,5 +10,12 @@
         "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
     },
     "src": "/.*", "dest": "index.js" }
-  ]
+  ],
+  "env": {
+    "DB_USER": "@social-db-user",
+    "DB_PASSWORD": "@social-db-password",
+    "DB_HOST": "@social-db-host",
+    "DB_NAME": "@social-db-name",
+    "MONGODB": "@social-db-mongo"
+  }
 }
