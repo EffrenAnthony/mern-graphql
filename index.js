@@ -9,10 +9,10 @@ const pubsub = new PubSub()
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  
   // permitirá utilizar el request de body en nuestro contexto, para poder hace peticiones privadas o solo autenticadas
   context: ({ req }) => ({ req, pubsub })
 })
-
 mongoose.connect(config.mongodb, {
   useNewUrlParser: true, 
   useUnifiedTopology: true,
