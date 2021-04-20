@@ -6,7 +6,7 @@ import { onError } from '@apollo/client/link/error'
 
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000'
+  uri: 'https://social-graphql-effrenanthony.vercel.app/'
 })
 const authMiddleware = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem('jwtToken')

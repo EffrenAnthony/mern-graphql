@@ -1,21 +1,39 @@
-import { useQuery } from '@apollo/client'
+import { useMutation, useQuery } from '@apollo/client'
 import moment from 'moment'
-import React, { useContext } from 'react'
-import { Grid, Image, Card, Button, Icon, Label } from 'semantic-ui-react'
+import React, { useContext, useRef, useState } from 'react'
+import { Grid, Image, Card, Button, Icon, Label, Form } from 'semantic-ui-react'
 import { DeleteButton } from '../components/DeleteButton'
 import { LikeButton } from '../components/LikeButton'
 import { AuthContext } from '../context/auth'
+import { SUBMIT_COMMENT } from '../graphQL/Mutations'
 import { FETCH_POST_QUERY } from '../graphQL/Queries'
+import { MyPopup } from '../util/MyPopUp'
 
 export const SinglePost = (props) => {
   const { user } = useContext(AuthContext)
+  const commentInputRef = useRef(null)
   const postId = props.match.params.postId
-  console.log(postId);
+  const [comment, setComment] = useState('')
   const {data} = useQuery(FETCH_POST_QUERY, {
     variables: {
       postId,
     }
+  }) 
+
+  const [submitComment] = useMutation(SUBMIT_COMMENT,{
+    update(){
+      setComment('')
+      commentInputRef.current.blur()
+    },
+    variables: {
+      postId,
+      body: comment
+    }
   })
+
+  function deletePostCallback(){
+    props.history.push('/')
+  }
   let postMarkup
   if (!data) {
     postMarkup = <p>Loading post...</p>
@@ -23,43 +41,90 @@ export const SinglePost = (props) => {
     console.log(data.getPost);
     const {id, body, createdAt, username, comments, likes, likeCount, commentCount} = data.getPost
 
-    postMarkup = (
+    postMarkup = 
+    <>
     <Grid>
       <Grid.Row>
-        <Grid.Column with={2}>
-          <Image
-            floated='right'
-            size='small'
-            src='https://react.semantic-ui.com/images/avatar/large/molly.png'
-          />
-        </Grid.Column>
-        <Grid.Column with={10}>
+      <Grid.Column width={2}>
+            <Image
+              src="https://react.semantic-ui.com/images/avatar/large/molly.png"
+              size="small"
+              float="right"
+            />
+          </Grid.Column>
+          <Grid.Column width={10}>
           <Card fluid>
             <Card.Content>
               <Card.Header>{username}</Card.Header>
-              <Card.Meta>{moment(createdAt)}</Card.Meta>
+              <Card.Meta>{moment(createdAt).fromNow()}</Card.Meta>
               <Card.Description>{body}</Card.Description>
             </Card.Content>
             <hr/>
             <Card.Content extra>
               <LikeButton user={user} post={{id, likeCount, likes}}/>
-              <Button as='div' labelPosition='right' onClick={()=>console.log('COmment post')}> 
-                <Button basic color='blue'>
-                  <Icon name='comments'/>
+              <MyPopup content='Comment on post'>
+                <Button as='div' labelPosition='right' onClick={()=>console.log('COmment post')}> 
+                  <Button basic color='blue'>
+                    <Icon name='comments'/>
+                  </Button>
+                  <Label basic color='blue' pointing='left'>
+                    {commentCount}
+                  </Label>
                 </Button>
-                <Label basic color='blue' pointing='left'>
-                  {commentCount}
-                </Label>
-              </Button>
+
+              </MyPopup>
               {user && user.username === username &&
-                <DeleteButton postId={id} />
+                <DeleteButton postId={id} callback={deletePostCallback}/>
               }
             </Card.Content>
           </Card>
+          {user && 
+            <Card fluid>
+              <Card.Content>
+                <p>Post a Comment</p>
+                <Form>
+                  <div className="ui action input fluid">
+                    <input 
+                      type="text" 
+                      placeholder="Comment..." 
+                      name="comment" 
+                      value={comment} 
+                      onChange={event => setComment(event.target.value)}
+                      ref={commentInputRef}
+                    />
+                    <button 
+                      type="submit" 
+                      className='ui button teal' 
+                      disabled={comment.trim() === ''} 
+                      onClick={submitComment}>
+                        Submit
+                    </button>
+                  </div>
+                </Form>
+              </Card.Content>
+            </Card>
+          }
+          {comments.map((comment) => (
+              <Card fluid key={comment.id}>
+                <Card.Content>
+                  {user && user.username === comment.username && (
+                    <DeleteButton postId={id} commentId={comment.id} />
+                  )}
+                  <Card.Header>{comment.username}</Card.Header>
+                  <Card.Meta>{moment(comment.createdAt).fromNow()}</Card.Meta>
+                  <Card.Description>{comment.body}</Card.Description>
+                </Card.Content>
+              </Card>
+            ))}
         </Grid.Column>
       </Grid.Row>
-    </Grid>)
+    </Grid>
+    </>
   }
-  return postMarkup
+  return (
+    <>
+    {postMarkup}
+    </>
+  )
   
 }

@@ -22,5 +22,5 @@ mongoose.connect(config.mongodb, {
   return server.listen({ port: config.port })  
 }).then(res => {
   console.log(`Server running at ${res.url}`);
-})
+}).catch(err => {console.log(err);})
 

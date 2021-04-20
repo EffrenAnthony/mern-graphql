@@ -4,7 +4,7 @@ const checkAuth = require('../../util/check-auth')
 
 module.exports = {
   Mutation: {
-    createCommnet: async(_, { postId, body }, context) => {
+    createComment: async(_, { postId, body }, context) => {
       const { username } = checkAuth(context)
       if (body.trim() === '') {
         throw new UserInputError('Empty comment', {
